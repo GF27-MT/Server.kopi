@@ -42,29 +42,30 @@ app.get('/opskrifter', async (req, res) => {
 
 app.post('/importer', async (req, res) => {
   try {
-    // Læs indholdet fra opskrifter.json
     const data = JSON.parse(fs.readFileSync('./opskrifter.json', 'utf8'));
 
-    // Gør det klar til databasen
-    const klarTilDatabase = data.map(opskrift => ({
-      titel: opskrift.title,
-      produkttype: opskrift.project_type,
-      sværhedsgrad: 'Ukendt', // vi kender ikke niveauet endnu
-      garn: opskrift.yarns,
-      image: opskrift.image,
-      url: opskrift.url,
-      fibers: opskrift.fibers,
-    }));
+    const klarTilDatabase = data
+      .filter(opskrift => opskrift.title && opskrift.project_type)
+      .map(opskrift => ({
+        titel: opskrift.title,
+        produkttype: opskrift.project_type,
+        sværhedsgrad: 'Ukendt',
+        garn: opskrift.yarns || [],
+        image: opskrift.image || '',
+        url: opskrift.url || '',
+        fibers: opskrift.fibers || [],
+      }));
 
-    // Gem i databasen
+    await Opskrift.deleteMany({});
     await Opskrift.insertMany(klarTilDatabase);
 
-    res.status(201).json({ message: 'Opskrifter er lagt ind i databasen!' });
+    res.status(201).json({ message: 'Opskrifter importeret uden tomme!' });
   } catch (err) {
-    console.error('Noget gik galt:', err);
-    res.status(500).json({ message: 'Kunne ikke importere opskrifter' });
+    console.error('Fejl:', err);
+    res.status(500).json({ message: 'Fejl ved import' });
   }
 });
+
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
