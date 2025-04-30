@@ -43,7 +43,7 @@ app.get('/opskrifter', async (req, res) => {
 app.post('/importer', async (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync('./opskrifter.json', 'utf8'));
-
+    
     const klarTilDatabase = data
       .filter(opskrift => opskrift.title && opskrift.project_type)
       .map(opskrift => ({
