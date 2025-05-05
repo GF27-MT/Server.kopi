@@ -86,7 +86,7 @@ function oversætGender(gender) {
     children: "Børn",
     "children (2-14)": "Børn (2-14 år)",
     baby: "Baby",
-    "Baby (0-4)": "Baby (0-4 år)"
+    "baby (0-4)": "Baby (0-4 år)"
     
   };
 
