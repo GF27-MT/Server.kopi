@@ -98,10 +98,14 @@ function oversætProjectType(projectType) {
 
   const oversættelser = {
     "Dresses & Tunics": "Kjoler og Tunikaer",
-    "Sweaters": "Sweatre",
+    "Jumpers": "Sweater",
     "Cardigans": "Cardigans",
-    "Pullovers": "Trøjer",
+    "Easter": "Påske",
     "Tops": "Toppe",
+    "Socks & Slippers": "Strømper & Hjemmesko",
+    "Kids Room": "Børneværelse",
+    "Vests & Tops": "Veste & Toppe",
+    "Vests": "Veste",
     "Shirts & Blouses": "Skjorter og Bluser",
     "Pants & Shorts": "Bukser og Shorts",
     "Skirts": "Nederdele",
@@ -111,11 +115,29 @@ function oversætProjectType(projectType) {
     "Socks": "Strømper",
     "Baby Blankets": "Babytæpper",
     "Blankets": "Tæpper"
-    // Tilføj evt. flere varianter her
+   
   };
 
   return oversættelser[projectType] || projectType;
 }
+
+axios.get("https://server-kopi.onrender.com/opskrifter")
+  .then(response => {
+    const opskrifter = response.data;
+
+    const typer = new Set();
+    opskrifter.forEach(o => {
+      if (o.produkttype) {
+        typer.add(o.produkttype);
+      }
+    });
+
+    console.log("Unikke project_type værdier:");
+    console.log([...typer]);
+  })
+  .catch(error => {
+    console.error("Fejl ved hentning af data:", error);
+  });
 
 
 // Lav en lowercase-version af garnKategoriMap (kør kun én gang)
@@ -174,7 +196,7 @@ mongoose.connect(MONGODB_URI)
       .filter(opskrift => opskrift.title && opskrift.project_type)
       .map(opskrift => ({
         titel: opskrift.title,
-        produkttype: opskrift.project_type,
+        produkttype: oversætProjectType(opskrift.project_type),
         kategori: oversætGender(opskrift.gender),
         garn: oversætGarnKategori(opskrift.yarns || []),
         image: opskrift.image || '',
@@ -194,7 +216,7 @@ mongoose.connect(MONGODB_URI)
 // GET: Hent alle opskrifter
 app.get('/opskrifter', async (req, res) => {
   try {
-    const opskrifter = await Opskrift.find().limit(20);
+    const opskrifter = await Opskrift.find().limit(50);
     res.json(opskrifter);
   } catch (err) {
     res.status(500).json({ message: 'Fejl ved hentning af opskrifter' });
