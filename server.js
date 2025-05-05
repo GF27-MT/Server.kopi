@@ -184,39 +184,10 @@ const Opskrift = mongoose.model('Opskrift', {
   fibers: [String],
 });
 
-// MongoDB connection
-mongoose.connect(MONGODB_URI)
-  .then(async () => {
-
-    const data = JSON.parse(fs.readFileSync('./opskrifter.json', 'utf8'));
-    console.log('Antal opskrifter i JSON:', data.length);
-    console.log('Første opskrift:', data[0]);
-
-    const klarTilDatabase = data
-      .filter(opskrift => opskrift.title && opskrift.project_type)
-      .map(opskrift => ({
-        titel: opskrift.title,
-        produkttype: oversætProjectType(opskrift.project_type),
-        kategori: oversætGender(opskrift.gender),
-        garn: oversætGarnKategori(opskrift.yarns || []),
-        image: opskrift.image || '',
-        url: opskrift.url || '',
-        fibers: opskrift.fibers || [],
-      }));
-
-    await Opskrift.deleteMany({});
-    await Opskrift.insertMany(klarTilDatabase);
-
-    console.log('✅ Opskrifter importeret!');
-  })
-  .then(() => console.log('🟢 Forbundet til MongoDB Atlas'))
-  .catch(err => console.error('🔴 Fejl ved forbindelse til MongoDB:', err));
-
-
 // GET: Hent alle opskrifter
 app.get('/opskrifter', async (req, res) => {
   try {
-    const opskrifter = await Opskrift.find().limit(50);
+    const opskrifter = await Opskrift.find().limit(100);
     res.json(opskrifter);
   } catch (err) {
     res.status(500).json({ message: 'Fejl ved hentning af opskrifter' });
@@ -248,6 +219,37 @@ app.post('/importer', async (req, res) => {
     res.status(500).json({ message: 'Fejl ved import' });
   }
 });
+
+// MongoDB connection
+mongoose.connect(MONGODB_URI)
+  .then(async () => {
+
+    const data = JSON.parse(fs.readFileSync('./opskrifter.json', 'utf8'));
+    console.log('Antal opskrifter i JSON:', data.length);
+    console.log('Første opskrift:', data[0]);
+
+    const klarTilDatabase = data
+      .filter(opskrift => opskrift.title && opskrift.project_type)
+      .map(opskrift => ({
+        titel: opskrift.title,
+        produkttype: oversætProjectType(opskrift.project_type),
+        kategori: oversætGender(opskrift.gender),
+        garn: oversætGarnKategori(opskrift.yarns || []),
+        image: opskrift.image || '',
+        url: opskrift.url || '',
+        fibers: opskrift.fibers || [],
+      }));
+
+    await Opskrift.deleteMany({});
+    await Opskrift.insertMany(klarTilDatabase);
+
+    console.log('✅ Opskrifter importeret!');
+  })
+  .then(() => console.log('🟢 Forbundet til MongoDB Atlas'))
+  .catch(err => console.error('🔴 Fejl ved forbindelse til MongoDB:', err));
+
+
+
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
