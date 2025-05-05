@@ -81,17 +81,17 @@ function oversætGender(gender) {
   const oversættelser = {
     men: "Mand",
     women: "Kvinde",
-    unisex: "Unisex",
     home: "Hjem",
+    baby: "Baby",
     children: "Børn",
     "children (2-14)": "Børn (2-14 år)",
-    baby: "Baby",
-    "baby (0-4)": "Baby (0-4 år)"
     
   };
 
-  return oversættelser[gender.toLowerCase()] || gender;
+  return oversættelser[gender.trim().toLowerCase()] || gender;
 }
+
+console.log(oversætGender("children (2-14)")); // "Børn (2-14 år)"
 
 function oversætProjectType(projectType) {
   if (!projectType) return "Ukendt";
