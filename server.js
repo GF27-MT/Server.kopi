@@ -73,6 +73,8 @@ const garnKategoriMap = {
   "Drops Sky": "Uld",
   "Drops Snow": "Uld",
   "Drops Soft Tweed": "Uld",
+
+ "Drops Glitter": "Glitter"
 };
 
 function oversætGender(gender) {
@@ -104,7 +106,7 @@ function oversætProjectType(projectType) {
     "Cardigans": "Cardigans",
     "Easter": "Påske",
     "Tops": "Toppe",
-    "Socks & Slippers": "Strømper & Hjemmesko",
+    "Socks & Slippers": "Strømper",
     "Kids Room": "Børneværelse",
     "Vests & Tops": "Veste & Toppe",
     "Vests": "Veste",
@@ -189,7 +191,7 @@ const Opskrift = mongoose.model('Opskrift', {
 // GET: Hent alle opskrifter
 app.get('/opskrifter', async (req, res) => {
   try {
-    const opskrifter = await Opskrift.find().limit(100);
+    const opskrifter = await Opskrift.find().limit(1000);
     res.json(opskrifter);
   } catch (err) {
     res.status(500).json({ message: 'Fejl ved hentning af opskrifter' });
@@ -228,7 +230,7 @@ mongoose.connect(MONGODB_URI)
 
     const data = JSON.parse(fs.readFileSync('./opskrifter.json', 'utf8'));
     console.log('Antal opskrifter i JSON:', data.length);
-    console.log('Første opskrift:', data[0]);
+    
 
     const klarTilDatabase = data
       .filter(opskrift => opskrift.title && opskrift.project_type)
