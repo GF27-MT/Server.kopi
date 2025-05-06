@@ -108,7 +108,7 @@ function oversætProjectType(projectType) {
     "Tops": "Toppe",
     "Socks & Slippers": "Strømper",
     "Kids Room": "Børneværelse",
-    "Vests & Tops": "Veste & Toppe",
+    "Vests & Tops": "Veste og Toppe",
     "Vests": "Veste",
     "Shirts & Blouses": "Skjorter og Bluser",
     "Pants & Shorts": "Bukser og Shorts",
@@ -116,9 +116,17 @@ function oversætProjectType(projectType) {
     "Hats": "Huer",
     "Scarves": "Tørklæder",
     "Mittens & Gloves": "Vanter og Handsker",
-    "Socks": "Strømper",
+    "Socks & Slippers": "Strømper",
     "Baby Blankets": "Babytæpper",
-    "Blankets": "Tæpper"
+    "Blankets": "Tæpper",
+    "Unknown": "Andet",
+    "Dresses & Skirts": "Kjoler og nederdele",
+    "Baskets": "kurve",
+    "Newborn Sets": "Nyfødte sæts",
+    "Trousers & Shorts": "Bukser og shorts",
+    "Washcloths": "Karklude",
+    
+
    
   };
 
