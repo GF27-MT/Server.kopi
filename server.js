@@ -94,8 +94,6 @@ function oversætGender(gender) {
   return oversættelser[gender.trim().toLowerCase()] || gender;
 }
 
-console.log(oversætGender("baby (0-4)")); 
-console.log(oversætGender("children (2-14)")); // "Børn (2-14 år)"
 
 function oversætProjectType(projectType) {
   if (!projectType) return "Ukendt";
@@ -106,7 +104,7 @@ function oversætProjectType(projectType) {
     "Cardigans": "Cardigans",
     "Easter": "Påske",
     "Tops": "Toppe",
-    "Socks & Slippers": "Strømper",
+    "Socks & Slippers": "Strømper og Hjemmesko",
     "Kids Room": "Børneværelse",
     "Vests & Tops": "Veste og Toppe",
     "Vests": "Veste",
@@ -116,18 +114,25 @@ function oversætProjectType(projectType) {
     "Hats": "Huer",
     "Scarves": "Tørklæder",
     "Mittens & Gloves": "Vanter og Handsker",
-    "Socks & Slippers": "Strømper",
     "Baby Blankets": "Babytæpper",
     "Blankets": "Tæpper",
     "Unknown": "Andet",
     "Dresses & Skirts": "Kjoler og nederdele",
     "Baskets": "kurve",
-    "Newborn Sets": "Nyfødte sæts",
+    "Newborn Sets": "Hentesæt",
     "Trousers & Shorts": "Bukser og shorts",
     "Washcloths": "Karklude",
-    
+    "Egg Warmers": "Æggevarmer",
+    "Bunting Bags": "Køreposer",
+    "Socks & Booties": "Strømper og Støvler",
+    "Shawls": "Sjaler",
+    "Ponchos": "Ponchoer",
+    "Ornaments & Decor": "Dekorationer",
+    "Postholders & Trivets": "Gryddelapper og Bordskåner",
+    "Pets": "Kæledyr",
+    "Rompers & Onesies": "Sparkedragter og Overalls",
+    "Bikinis": "Bikinier",
 
-   
   };
 
   return oversættelser[projectType] || projectType;
@@ -199,7 +204,7 @@ const Opskrift = mongoose.model('Opskrift', {
 // GET: Hent alle opskrifter
 app.get('/opskrifter', async (req, res) => {
   try {
-    const opskrifter = await Opskrift.find().limit(1000);
+    const opskrifter = await Opskrift.find().limit(4168);
     res.json(opskrifter);
   } catch (err) {
     res.status(500).json({ message: 'Fejl ved hentning af opskrifter' });
