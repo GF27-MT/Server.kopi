@@ -191,7 +191,7 @@ const Opskrift = mongoose.model('Opskrift', {
 // GET: Hent alle opskrifter
 app.get('/opskrifter', async (req, res) => {
   try {
-    const opskrifter = await Opskrift.find().limit(4168);
+    const opskrifter = await Opskrift.find().limit(1000);
     res.json(opskrifter);
   } catch (err) {
     res.status(500).json({ message: 'Fejl ved hentning af opskrifter' });
