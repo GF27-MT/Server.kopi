@@ -6,6 +6,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const app = express();
 
 // Mapping af garnmærker → kategorier
 const garnKategoriMap = {
@@ -214,7 +215,7 @@ function oversætGarnKategori(mærker) {
   return Array.from(set);
 }
 
-const app = express();
+
 const PORT = process.env.PORT || 3000;  // Brug den dynamiske PORT eller 3000 som fallback
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://GryFanth:Wester1484@cluster0.pc5nf0o.mongodb.net/opskriftDB?retryWrites=true&w=majority";  // Din MongoDB URI
 
@@ -319,29 +320,39 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('🟢 Forbundet til MongoDB Atlas'))
   .catch(err => console.error('🔴 Fejl ved forbindelse til MongoDB:', err));
 
-// POST: Modtag én ny opskrift og gem den i databasen
-app.post('/opskrifter', async (req, res) => {
-  try {
-    const { titel, produkttype, kategori, garn, image, url, fibers } = req.body;
+// Route for at modtage opskriften og gemme den i opskrifter.json
+app.post('/opskrifter', (req, res) => {
+  const opskrift = req.body;
 
-    
-    const nyOpskrift = new Opskrift({
-      titel,
-      produkttype,
-      kategori,
-      garn,
-      image,
-      url,
-      fibers: fibers || [],
+  // Læs eksisterende opskrifter fra filen
+  fs.readFile('./opskrifter.json', 'utf8', (err, data) => {
+    if (err) {
+      console.error('Fejl ved læsning af fil:', err);
+      return res.status(500).json({ message: 'Fejl ved læsning af opskrifter' });
+    }
+
+    // Parse den eksisterende opskrift-liste (eller en tom array, hvis der ikke er noget)
+    let opskrifter = [];
+    try {
+      opskrifter = JSON.parse(data);
+    } catch (parseErr) {
+      console.error('Fejl ved parsing af JSON:', parseErr);
+    }
+
+    // Tilføj den nye opskrift til arrayet
+    opskrifter.push(opskrift);
+
+    // Gem de opdaterede opskrifter tilbage til filen
+    fs.writeFile('./opskrifter.json', JSON.stringify(opskrifter, null, 2), 'utf8', (writeErr) => {
+      if (writeErr) {
+        console.error('Fejl ved skrivning til fil:', writeErr);
+        return res.status(500).json({ message: 'Fejl ved skrivning af opskrifter' });
+      }
+
+      console.log('Opskrift gemt:', opskrift);
+      res.status(201).json({ message: 'Opskrift gemt!' });
     });
-
-    await nyOpskrift.save();
-    console.log(`📥 Modtog og gemte opskrift: ${titel}`);
-    res.status(201).json({ message: 'Opskrift gemt!', opskrift: nyOpskrift });
-  } catch (err) {
-    console.error('❌ Fejl ved modtagelse af opskrift:', err);
-    res.status(500).json({ message: 'Fejl ved gemning af opskrift' });
-  }
+  });
 });
 
 app.listen(PORT, () => {
