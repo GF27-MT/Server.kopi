@@ -320,40 +320,38 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('🟢 Forbundet til MongoDB Atlas'))
   .catch(err => console.error('🔴 Fejl ved forbindelse til MongoDB:', err));
 
-// Route for at modtage opskriften og gemme den i opskrifter.json
-app.post('/opskrifter', (req, res) => {
-  const opskrift = req.body;
+// POST: Tilføj en ny opskrift til databasen
+app.post('/opskrifter', async (req, res) => {
+  try {
+    const { titel, garn, kategori, produktType, image, url, fibers } = req.body;
 
-  // Læs eksisterende opskrifter fra filen
+    const nyOpskrift = new Opskrift({
+      titel,
+      garn: garn || [],
+      kategori: kategori || "Ukendt",
+      produkttype: produktType || "Ukendt",
+      image: image || "",
+      url: url || "",
+      fibers: fibers || [],
+    });
+
+    await nyOpskrift.save();
+    res.status(201).json({ message: "Opskrift gemt i databasen!" });
+  } catch (err) {
+    console.error("Fejl ved indsættelse:", err);
+    res.status(500).json({ message: "Kunne ikke gemme opskriften." });
+  }
+});
+
+app.get('/opskrifter', (req, res) => {
   fs.readFile('./opskrifter.json', 'utf8', (err, data) => {
     if (err) {
-      console.error('Fejl ved læsning af fil:', err);
       return res.status(500).json({ message: 'Fejl ved læsning af opskrifter' });
     }
-
-    // Parse den eksisterende opskrift-liste (eller en tom array, hvis der ikke er noget)
-    let opskrifter = [];
-    try {
-      opskrifter = JSON.parse(data);
-    } catch (parseErr) {
-      console.error('Fejl ved parsing af JSON:', parseErr);
-    }
-
-    // Tilføj den nye opskrift til arrayet
-    opskrifter.push(opskrift);
-
-    // Gem de opdaterede opskrifter tilbage til filen
-    fs.writeFile('./opskrifter.json', JSON.stringify(opskrifter, null, 2), 'utf8', (writeErr) => {
-      if (writeErr) {
-        console.error('Fejl ved skrivning til fil:', writeErr);
-        return res.status(500).json({ message: 'Fejl ved skrivning af opskrifter' });
-      }
-
-      console.log('Opskrift gemt:', opskrift);
-      res.status(201).json({ message: 'Opskrift gemt!' });
-    });
+    res.send(data);
   });
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server kører på http://localhost:${PORT}`);
