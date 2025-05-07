@@ -128,11 +128,11 @@ function oversætProjectType(projectType) {
     "Shawls": "Sjaler",
     "Ponchos": "Ponchoer",
     "Ornaments & Decor": "Dekorationer",
-    "Potholders & Trivets": "Gryddelapper og Bordskåner",
+    "Potholders & Trivets": "Gryddelapper o.lign.",
     "Pets": "Kæledyr",
     "Rompers & Onesies": "Sparkedragter og Overalls",
     "Bikinis": "Bikinier",
-    "Coasters & Placemats": "Glasunderlag og Dækkeservietter",
+    "Coasters & Placemats": "Glasunderlag o.lign.",
     "Pillows & Cushions": "Puder og Puffer",
     "Seat Pads": "Siddeunderlag",
     "Trousers & Overalls": "Bukser og Overalls",
@@ -147,6 +147,29 @@ function oversætProjectType(projectType) {
 
   return oversættelser[projectType] || projectType;
 }
+
+function sortByLengthPattern(array) {
+  const sorted = [...array].sort((a, b) => a.length - b.length);
+
+  const total = sorted.length;
+  const chunkSize = Math.ceil(total / 3);
+
+  const short = sorted.slice(0, chunkSize);
+  const medium = sorted.slice(chunkSize, 2 * chunkSize);
+  const long = sorted.slice(2 * chunkSize);
+
+  const result = [];
+
+  for (let i = 0; i < total; i++) {
+    if (short.length) result.push(short.shift());
+    if (medium.length) result.push(medium.shift());
+    if (long.length) result.push(long.shift());
+  }
+
+  return result;
+}
+
+
 
 axios.get("https://server-kopi.onrender.com/opskrifter")
   .then(response => {
@@ -287,9 +310,10 @@ mongoose.connect(MONGODB_URI)
 
     console.log("📦 Produkttyper pr. kategori (køn):");
     for (const kategori in grupperet) {
-      const typerMedAnførselstegn = [...grupperet[kategori]].map(type => `"${type}"`);
+      const sorteretTyper = sortByLengthPattern([...grupperet[kategori]]);
+      const typerMedAnførselstegn = sorteretTyper.map(type => `"${type}"`);
       console.log(`- ${kategori}: ${typerMedAnførselstegn.join(", ")}`);
-    }
+    }    
     
     console.log('✅ Opskrifter importeret!');
   })
