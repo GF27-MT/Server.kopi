@@ -104,7 +104,7 @@ function oversætProjectType(projectType) {
     "Cardigans": "Cardigans",
     "Easter": "Påske",
     "Tops": "Toppe",
-    "Socks & Slippers": "Strømper og Hjemmesko",
+    "Socks & Slippers": "Strømper og Futsko",
     "Kids Room": "Børneværelse",
     "Vests & Tops": "Veste og Toppe",
     "Vests": "Veste",
