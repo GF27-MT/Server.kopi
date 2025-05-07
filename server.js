@@ -74,7 +74,7 @@ const garnKategoriMap = {
   "Drops Snow": "Uld",
   "Drops Soft Tweed": "Uld",
 
- "Drops Glitter": "Glitter"
+  "Drops Glitter": "Glitter"
 };
 
 function oversætGender(gender) {
@@ -84,7 +84,7 @@ function oversætGender(gender) {
     men: "Mand",
     women: "Kvinde",
     home: "Hjem",
-    unisex: "Unisex",
+    ukendt: "Højtider",
     children: "Børn",
     "children (2-14)": "Børn (2-14 år)",
     baby: "Baby",
@@ -128,10 +128,20 @@ function oversætProjectType(projectType) {
     "Shawls": "Sjaler",
     "Ponchos": "Ponchoer",
     "Ornaments & Decor": "Dekorationer",
-    "Postholders & Trivets": "Gryddelapper og Bordskåner",
+    "Potholders & Trivets": "Gryddelapper og Bordskåner",
     "Pets": "Kæledyr",
     "Rompers & Onesies": "Sparkedragter og Overalls",
     "Bikinis": "Bikinier",
+    "Coasters & Placemats": "Glasunderlag og Dækkeservietter",
+    "Pillows & Chushions": "Puder og Puffer",
+    "Seat Pads": "Siddeunderlag",
+    "Trousers & Overalls": "Bukser og Overalls",
+    "Bookmarks": "Bogmærker",
+    "Christmas": "Jul",
+    "Carpets": "Tæpper",
+    "Covers": "Betræk",
+    "Halloween & Carnival": "Halloween og Karnival",
+    "Decorative Flowers": "Dekorative Blomster"
 
   };
 
@@ -149,7 +159,7 @@ axios.get("https://server-kopi.onrender.com/opskrifter")
       }
     });
 
-    console.log("Unikke project_type værdier:");
+    console.log("Produkttyper:");
     console.log([...typer]);
   })
   .catch(error => {
@@ -243,7 +253,7 @@ mongoose.connect(MONGODB_URI)
 
     const data = JSON.parse(fs.readFileSync('./opskrifter.json', 'utf8'));
     console.log('Antal opskrifter i JSON:', data.length);
-    
+
 
     const klarTilDatabase = data
       .filter(opskrift => opskrift.title && opskrift.project_type)
@@ -259,6 +269,26 @@ mongoose.connect(MONGODB_URI)
 
     await Opskrift.deleteMany({});
     await Opskrift.insertMany(klarTilDatabase);
+
+    // Gruppér og udskriv produkttyper efter kategori (køn)
+    const opskrifter = await Opskrift.find();
+    const grupperet = {};
+
+    opskrifter.forEach(opskrift => {
+      const kategori = opskrift.kategori || "Ukendt";
+      const produkttype = opskrift.produkttype || "Ukendt";
+
+      if (!grupperet[kategori]) {
+        grupperet[kategori] = new Set();
+      }
+
+      grupperet[kategori].add(produkttype);
+    });
+
+    console.log("📦 Produkttyper pr. kategori (køn):");
+    for (const kategori in grupperet) {
+      console.log(`- ${kategori}: ${[...grupperet[kategori]].join(", ")}`);
+    }
 
     console.log('✅ Opskrifter importeret!');
   })
