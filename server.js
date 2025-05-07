@@ -133,7 +133,7 @@ function oversætProjectType(projectType) {
     "Rompers & Onesies": "Sparkedragter og Overalls",
     "Bikinis": "Bikinier",
     "Coasters & Placemats": "Glasunderlag og Dækkeservietter",
-    "Pillows & Chushions": "Puder og Puffer",
+    "Pillows & Cushions": "Puder og Puffer",
     "Seat Pads": "Siddeunderlag",
     "Trousers & Overalls": "Bukser og Overalls",
     "Bookmarks": "Bogmærker",
@@ -287,9 +287,10 @@ mongoose.connect(MONGODB_URI)
 
     console.log("📦 Produkttyper pr. kategori (køn):");
     for (const kategori in grupperet) {
-      console.log(`- ${kategori}: ${[...grupperet[kategori]].join(", ")}`);
+      const typerMedAnførselstegn = [...grupperet[kategori]].map(type => `"${type}"`);
+      console.log(`- ${kategori}: ${typerMedAnførselstegn.join(", ")}`);
     }
-
+    
     console.log('✅ Opskrifter importeret!');
   })
   .then(() => console.log('🟢 Forbundet til MongoDB Atlas'))
