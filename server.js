@@ -181,8 +181,8 @@ axios.get("https://server-kopi.onrender.com/opskrifter")
       }
     });
 
-    console.log("Produkttyper:");
-    console.log([...typer]);
+    //console.log("Produkttyper:");
+    //console.log([...typer]);
   })
   .catch(error => {
     console.error("Fejl ved hentning af data:", error);
@@ -307,22 +307,43 @@ mongoose.connect(MONGODB_URI)
       grupperet[kategori].add(produkttype);
     });
 
-    console.log("📦 Produkttyper pr. kategori (køn):");
-    for (const kategori in grupperet) {
-      const sorteretTyper = sortByLengthPattern([...grupperet[kategori]]);
-      const typerMedAnførselstegn = sorteretTyper.map(type => `"${type}"`);
-      console.log(`- ${kategori}: ${typerMedAnførselstegn.join(", ")}`);
-    }    
+    //console.log("📦 Produkttyper pr. kategori (køn):");
+    //for (const kategori in grupperet) {
+      //const sorteretTyper = sortByLengthPattern([...grupperet[kategori]]);
+      //const typerMedAnførselstegn = sorteretTyper.map(type => `"${type}"`);
+     // console.log(`- ${kategori}: ${typerMedAnførselstegn.join(", ")}`);
+    //}    
     
     console.log('✅ Opskrifter importeret!');
   })
   .then(() => console.log('🟢 Forbundet til MongoDB Atlas'))
   .catch(err => console.error('🔴 Fejl ved forbindelse til MongoDB:', err));
 
+// POST: Modtag én ny opskrift og gem den i databasen
+app.post('/opskrifter', async (req, res) => {
+  try {
+    const { titel, produkttype, kategori, garn, image, url, fibers } = req.body;
 
+    
+    const nyOpskrift = new Opskrift({
+      titel,
+      produkttype,
+      kategori,
+      garn,
+      image,
+      url,
+      fibers: fibers || [],
+    });
 
+    await nyOpskrift.save();
+    console.log(`📥 Modtog og gemte opskrift: ${titel}`);
+    res.status(201).json({ message: 'Opskrift gemt!', opskrift: nyOpskrift });
+  } catch (err) {
+    console.error('❌ Fejl ved modtagelse af opskrift:', err);
+    res.status(500).json({ message: 'Fejl ved gemning af opskrift' });
+  }
+});
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server kører på http://0.0.0.0:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server kører på http://localhost:${PORT}`);
 });
