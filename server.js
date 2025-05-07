@@ -130,7 +130,7 @@ function oversætProjectType(projectType) {
     "Ornaments & Decor": "Dekorationer",
     "Potholders & Trivets": "Gryddelapper o.lign.",
     "Pets": "Kæledyr",
-    "Rompers & Onesies": "Sparkedragter og Overalls",
+    "Rompers & Onesies": "Sparkedragter o.lign",
     "Bikinis": "Bikinier",
     "Coasters & Placemats": "Glasunderlag o.lign.",
     "Pillows & Cushions": "Puder og Puffer",
