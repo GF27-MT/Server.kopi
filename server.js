@@ -49,7 +49,6 @@ const garnKategoriMap = {
   "Drops Kid-Silk": "Mohair",
 
   "Drops Brushed Alpaca Silk": "Silke",
-  "Drops Kid-Silk": "Silke",
 
   "Drops Air": "Uld",
   "Drops Alaska": "Uld",
