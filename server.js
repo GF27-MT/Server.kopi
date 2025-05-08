@@ -241,7 +241,7 @@ const Opskrift = mongoose.model('Opskrift', {
 // GET: Hent alle opskrifter fra databasen
 app.get('/opskrifter', async (req, res) => {
   try {
-    const opskrifter = await Opskrift.find().limit(10); // Hent alle opskrifter fra databasen
+    const opskrifter = await Opskrift.find(); // Hent alle opskrifter fra databasen
 
     // Debug: Log antallet af opskrifter
     console.log('Antal opskrifter i databasen:', opskrifter.length);
