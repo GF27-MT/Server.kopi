@@ -1,15 +1,5 @@
 [
     {
-        "titel": "Cloud Sweater",
-        "garn": [
-            "alpaka",
-            "mohair"
-        ],
-        "link": "https://www.petiteknit.com/products/cloud-sweater",
-        "kategori": "Kvinder",
-        "produktType": "Sweater"
-    },
-    {
         "image": "https://www.garnstudio.com/drops/mag/251/9/9-2.jpg",
         "project_type": "Jumpers",
         "fibers": [

@@ -8,7 +8,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const app = express();
 
-// Mapping af garnmærker → kategorier
+// Oversætter garnmærke til garnkategori 
 const garnKategoriMap = {
 
   "Drops Air": "Alpaka",
@@ -77,6 +77,7 @@ const garnKategoriMap = {
   "Drops Glitter": "Glitter"
 };
 
+// oversætter køn fra engelsk til dansk
 function oversætGender(gender) {
   if (!gender) return "Ukendt";
 
@@ -91,10 +92,12 @@ function oversætGender(gender) {
     "baby (0-4)": "Baby (0-4 år)",
   };
 
+  // Forsøger at finde en oversættelse af kønnet ved at konvertere det til små bogstaver og fjerne unødvendige mellemrum. 
+  // Hvis der findes en oversættelse, returneres den; ellers returneres den oprindelige værdi af 'gender'.
   return oversættelser[gender.trim().toLowerCase()] || gender;
 }
 
-
+//oversætter produkttyper fra engelsk til dansk
 function oversætProjectType(projectType) {
   if (!projectType) return "Ukendt";
 
@@ -144,215 +147,214 @@ function oversætProjectType(projectType) {
     "Decorative Flowers": "Dekorative Blomster"
 
   };
-
+  // Forsøger at finde en oversættelse af projektetype i 'oversættelser' objektet.
+  // Hvis en oversættelse findes, returneres den; ellers returneres den oprindelige værdi af 'projectType'.
   return oversættelser[projectType] || projectType;
 }
 
-function sortByLengthPattern(array) {
-  const sorted = [...array].sort((a, b) => a.length - b.length);
-
-  const total = sorted.length;
-  const chunkSize = Math.ceil(total / 3);
-
-  const short = sorted.slice(0, chunkSize);
-  const medium = sorted.slice(chunkSize, 2 * chunkSize);
-  const long = sorted.slice(2 * chunkSize);
-
-  const result = [];
-
-  for (let i = 0; i < total; i++) {
-    if (short.length) result.push(short.shift());
-    if (medium.length) result.push(medium.shift());
-    if (long.length) result.push(long.shift());
-  }
-
-  return result;
-}
-
-
-
+// Hent opskrifter fra serveren via en GET-anmodning
 axios.get("https://server-kopi.onrender.com/opskrifter")
   .then(response => {
+    // Gem opskrifterne, som blev hentet fra serveren
     const opskrifter = response.data;
 
+    // Opret et sæt til at gemme unikke produkttyper
     const typer = new Set();
+    // Gennemgå alle opskrifter og tilføj deres produkttype til sættet, hvis den findes
     opskrifter.forEach(o => {
       if (o.produkttype) {
-        typer.add(o.produkttype);
+        typer.add(o.produkttype); // Tilføj produkttype til sættet, hvis den eksisterer
       }
     });
 
-    //console.log("Produkttyper:");
-    //console.log([...typer]);
+    // På dette punkt er 'typer' nu et sæt med alle unikke produkttyper fra opskrifterne
   })
   .catch(error => {
+    // Hvis der opstår en fejl under GET-anmodningen, vis fejlinformationen i konsollen
     console.error("Fejl ved hentning af data:", error);
   });
 
 
-// Lav en lowercase-version af garnKategoriMap (kør kun én gang)
+// Opret en ny version af garnKategoriMap, hvor alle nøgler er gjort til lowercase og trimmet
+// Dette gør det muligt at sammenligne nøgler uden at være afhængig af store/små bogstaver eller mellemrum
 const garnKategoriMapLower = {};
 for (const key in garnKategoriMap) {
   garnKategoriMapLower[key.toLowerCase().trim()] = garnKategoriMap[key];
 }
 
-// Funktion der oversætter mærker til kategorier (med rensning)
+// Funktion der oversætter garnmærker til kategorier 
+// Funktion der oversætter en liste af garnmærker til garnkategorier ved at bruge en map
 function oversætGarnKategori(mærker) {
+  // Opret et set (unik liste) for at holde styr på de oversatte kategorier
   const set = new Set();
 
+  // Gennemgå hver garnmærke i den modtagne liste
   mærker.forEach(mærke => {
+    // Trim mellemrum og konverter garnmærket til små bogstaver for at sikre korrekt sammenligning
     const clean = mærke.trim().toLowerCase();
+
+    // Find den oversatte kategori fra 'garnKategoriMapLower' ved at bruge det rengjorte garnmærke
     const kategori = garnKategoriMapLower[clean];
 
+    // Hvis der findes en kategori, tilføj den til sættet
     if (kategori) {
       set.add(kategori);
     } else {
+      // Hvis ingen kategori findes, log en advarsel i konsollen og tilføj "Ukendt" til sættet
       console.warn("⚠️ Ukendt garnmærke:", mærke);
       set.add("Ukendt");
     }
   });
 
+  // Konverter set til et array og returner det
   return Array.from(set);
 }
 
-
+// Definerer porten, som serveren skal lytte på. Hvis miljøvariablen PORT er sat (fx af en cloud-service som Heroku), bruges den.
+// Hvis ikke, bruges port 3000 som standard under udvikling.
 const PORT = process.env.PORT || 3000;  // Brug den dynamiske PORT eller 3000 som fallback
+
+// Definerer URI'en til MongoDB-databasen. Hvis miljøvariablen MONGODB_URI er sat (fx på en cloud-service), bruges den.
+// Hvis ikke, bruges en hardkodet URI til databasen under udvikling.
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://GryFanth:Wester1484@cluster0.pc5nf0o.mongodb.net/opskriftDB?retryWrites=true&w=majority";  // Din MongoDB URI
 
 // Middleware
+// Brug CORS middleware for at tillade cross-origin requests (f.eks. hvis frontend og backend er på forskellige domæner)
 app.use(cors());
+
+// Brug body-parser middleware for at kunne håndtere JSON data i request body'en
+// Dette gør det muligt at parse JSON-data, som sendes i POST, PUT, PATCH requests
 app.use(bodyParser.json());
 
 // Mongoose model (til opskrifter)
+// Definerer en Mongoose model for opskrifter, som repræsenterer opskrifterne i databasen
 const Opskrift = mongoose.model('Opskrift', {
-  titel: { type: String, required: true },
-  produkttype: { type: String, required: true },
-  kategori: String,
-  garn: [String],
-  image: String,
-  url: String,
-  fibers: [String],
+  titel: { type: String, required: true }, // Titel på opskriften (krævet)
+  produkttype: { type: String, required: true }, // Type af produkt (krævet)
+  kategori: String, // Kategori (kan være tom)
+  garn: [String], // Liste af garn (kan være tom)
+  image: String, // URL til billede af opskriften
+  url: String, // Link til opskriftens hjemmeside
+  fibers: [String], // Liste over fiber typer
 });
 
-// GET: Hent alle opskrifter
+// GET: Hent alle opskrifter fra databasen
 app.get('/opskrifter', async (req, res) => {
   try {
-    const opskrifter = await Opskrift.find().limit(4168);
-    res.json(opskrifter);
+    const opskrifter = await Opskrift.find().limit(10); // Hent alle opskrifter fra databasen
+
+    // Debug: Log antallet af opskrifter
+    console.log('Antal opskrifter i databasen:', opskrifter.length);
+
+    res.json(opskrifter); // Send opskrifterne som JSON respons
   } catch (err) {
-    res.status(500).json({ message: 'Fejl ved hentning af opskrifter' });
+    res.status(500).json({ message: 'Fejl ved hentning af opskrifter' }); // Fejl ved hentning
   }
 });
 
+// POST: Importér opskrifter fra JSON-fil til databasen
 app.post('/importer', async (req, res) => {
   try {
+    // Læs opskrifterne fra JSON-filen
     const data = JSON.parse(fs.readFileSync('./opskrifter.json', 'utf8'));
 
+    // Forbered dataene til at blive gemt i databasen
     const klarTilDatabase = data
-      .filter(opskrift => opskrift.title && opskrift.project_type)
+      .filter(opskrift => opskrift.title && opskrift.project_type) // Filtrer kun opskrifter med titel og produkttype
       .map(opskrift => ({
         titel: opskrift.title,
         produkttype: opskrift.project_type,
-        kategori: opskrift.gender || "Ukendt", // ← HER
-        garn: oversætGarnKategori(opskrift.yarns || []),
-        image: opskrift.image || '',
-        url: opskrift.url || '',
-        fibers: opskrift.fibers || [],
+        kategori: opskrift.gender || "Ukendt", // Hvis køn mangler, sæt til "Ukendt"
+        garn: oversætGarnKategori(opskrift.yarns || []), // Oversæt garnkategorierne
+        image: opskrift.image || '', // Hvis billede mangler, sæt til tom
+        url: opskrift.url || '', // Hvis URL mangler, sæt til tom
+        fibers: opskrift.fibers || [], // Hvis fibers mangler, sæt til tom liste
       }));
 
+    // Ryd tidligere opskrifter fra databasen og indsæt de nye
     await Opskrift.deleteMany({});
-    await Opskrift.insertMany(klarTilDatabase);
+    await Opskrift.insertMany(klarTilDatabase); // Indsæt de validerede opskrifter i databasen
 
-    res.status(201).json({ message: 'Opskrifter importeret uden tomme!' });
+    res.status(201).json({ message: 'Opskrifter importeret uden tomme!' }); // Bekræftelse på succes
   } catch (err) {
-    console.error('Fejl:', err);
-    res.status(500).json({ message: 'Fejl ved import' });
+    console.error('Fejl:', err); // Log fejl i konsollen
+    res.status(500).json({ message: 'Fejl ved import' }); // Fejl ved import
   }
 });
 
 // MongoDB connection
+// Opretter forbindelse til MongoDB og håndterer fejl
 mongoose.connect(MONGODB_URI)
   .then(async () => {
 
+    // Læs opskrifterne fra JSON-filen
     const data = JSON.parse(fs.readFileSync('./opskrifter.json', 'utf8'));
-    console.log('Antal opskrifter i JSON:', data.length);
+    console.log('Antal opskrifter i JSON:', data.length); // Udskriv antal opskrifter i filen
 
-
+    // Forbered dataene til at blive gemt i databasen
     const klarTilDatabase = data
-      .filter(opskrift => opskrift.title && opskrift.project_type)
+      .filter(opskrift => opskrift.title && opskrift.project_type) // Filtrer opskrifter med titel og produkttype
       .map(opskrift => ({
         titel: opskrift.title,
-        produkttype: oversætProjectType(opskrift.project_type),
-        kategori: oversætGender(opskrift.gender),
-        garn: oversætGarnKategori(opskrift.yarns || []),
-        image: opskrift.image || '',
-        url: opskrift.url || '',
-        fibers: opskrift.fibers || [],
+        produkttype: oversætProjectType(opskrift.project_type), // Oversæt projekt type
+        kategori: oversætGender(opskrift.gender), // Oversæt køn
+        garn: oversætGarnKategori(opskrift.yarns || []), // Oversæt garnkategorierne
+        image: opskrift.image || '', // Hvis billede mangler, sæt til tom
+        url: opskrift.url || '', // Hvis URL mangler, sæt til tom
+        fibers: opskrift.fibers || [], // Hvis fibers mangler, sæt til tom liste
       }));
 
+    // Ryd tidligere opskrifter fra databasen og indsæt de nye
     await Opskrift.deleteMany({});
-    await Opskrift.insertMany(klarTilDatabase);
+    await Opskrift.insertMany(klarTilDatabase); // Indsæt de validerede opskrifter i databasen
 
-    // Gruppér og udskriv produkttyper efter kategori (køn)
+    // Gruppér opskrifter efter kategori (køn) og produkttype
     const opskrifter = await Opskrift.find();
     const grupperet = {};
 
     opskrifter.forEach(opskrift => {
-      const kategori = opskrift.kategori || "Ukendt";
-      const produkttype = opskrift.produkttype || "Ukendt";
+      const kategori = opskrift.kategori || "Ukendt"; // Hvis kategori mangler, sæt til "Ukendt"
+      const produkttype = opskrift.produkttype || "Ukendt"; // Hvis produkttype mangler, sæt til "Ukendt"
 
       if (!grupperet[kategori]) {
-        grupperet[kategori] = new Set();
+        grupperet[kategori] = new Set(); // Opret en ny kategori, hvis den ikke eksisterer
       }
 
-      grupperet[kategori].add(produkttype);
+      grupperet[kategori].add(produkttype); // Tilføj produkttype til den relevante kategori
     });
 
-    //console.log("📦 Produkttyper pr. kategori (køn):");
-    //for (const kategori in grupperet) {
-      //const sorteretTyper = sortByLengthPattern([...grupperet[kategori]]);
-      //const typerMedAnførselstegn = sorteretTyper.map(type => `"${type}"`);
-     // console.log(`- ${kategori}: ${typerMedAnførselstegn.join(", ")}`);
-    //}    
-    
-    console.log('✅ Opskrifter importeret!');
+    console.log('✅ Opskrifter importeret!'); // Bekræftelse på succes
   })
-  .then(() => console.log('🟢 Forbundet til MongoDB Atlas'))
-  .catch(err => console.error('🔴 Fejl ved forbindelse til MongoDB:', err));
+  .then(() => console.log('🟢 Forbundet til MongoDB Atlas')) // Bekræftelse på, at forbindelsen til MongoDB er oprettet
+  .catch(err => console.error('🔴 Fejl ved forbindelse til MongoDB:', err)); // Fejl ved forbindelse til MongoDB
 
 // POST: Tilføj en ny opskrift til databasen
 app.post('/opskrifter', async (req, res) => {
   try {
-    const { titel, garn, kategori, produktType, image, url, fibers } = req.body;
+    // Hent data fra request body'en
+    const { titel, garn, kategori, produkttype, image, url, fibers } = req.body;
 
+    // Opret en ny opskrift
     const nyOpskrift = new Opskrift({
       titel,
-      garn: garn || [],
-      kategori: kategori || "Ukendt",
-      produkttype: produktType || "Ukendt",
-      image: image || "",
-      url: url || "",
-      fibers: fibers || [],
+      garn: garn || [], // Hvis garn mangler, sæt til tom liste
+      kategori: kategori || "Ukendt", // Hvis kategori mangler, sæt til "Ukendt"
+      produkttype: produkttype || "Ukendt", // Hvis produkttype mangler, sæt til "Ukendt"
+      image: image || "", // Hvis billede mangler, sæt til tom
+      url: url || "", // Hvis URL mangler, sæt til tom
+      fibers: fibers || [], // Hvis fibers mangler, sæt til tom liste
     });
 
+    // Gem den nye opskrift i databasen
     await nyOpskrift.save();
-    res.status(201).json({ message: "Opskrift gemt i databasen!" });
+    res.status(201).json({ message: "Opskrift gemt i databasen!" }); // Bekræftelse på succes
   } catch (err) {
-    console.error("Fejl ved indsættelse:", err);
-    res.status(500).json({ message: "Kunne ikke gemme opskriften." });
+    console.error("Fejl ved indsættelse:", err); // Log fejl i konsollen
+    res.status(500).json({ message: "Kunne ikke gemme opskriften." }); // Fejl ved gemning
   }
 });
 
-app.get('/opskrifter', (req, res) => {
-  fs.readFile('./opskrifter.json', 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: 'Fejl ved læsning af opskrifter' });
-    }
-    res.send(data);
-  });
-});
-
-
+// Start serveren og lyt på den angivne port
 app.listen(PORT, () => {
-  console.log(`Server kører på http://localhost:${PORT}`);
+  console.log(`Server kører på http://localhost:${PORT}`); // Bekræftelse på, at serveren kører
 });
